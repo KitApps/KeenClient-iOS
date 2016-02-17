@@ -352,4 +352,14 @@ typedef NSDictionary* (^KeenGlobalPropertiesBlock)(NSString *eventCollection);
 // defines the KCLog macro
 #define KCLog(message, ...) { if([KeenClient isLoggingEnabled]) { NSLog(message, ##__VA_ARGS__); } }
 
+/**
+ Sets custom API endpoint
+ */
++ (void)setCustomServerAddress:(NSString *)aNewServerAddress;
+
+/**
+  Checks if we have custom address set and returns the correct server address to use
+ */
+- (NSString *)serverAddress;
+
 @end

@@ -22,6 +22,8 @@ static BOOL geoLocationEnabled = NO;
 static BOOL loggingEnabled = NO;
 static KIODBStore *dbStore;
 
+static NSString *customServerAddress = nil;
+
 @interface KeenClient ()
 
 // The project ID for this particular client.
@@ -935,7 +937,7 @@ static KIODBStore *dbStore;
 
 - (void)sendEvents:(NSData *)data completionHandler:(void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler {
     NSString *urlString = [NSString stringWithFormat:@"%@/%@/projects/%@/events",
-                           kKeenServerAddress, kKeenApiVersion, self.projectID];
+                           [self serverAddress], kKeenApiVersion, self.projectID];
     KCLog(@"Sending request to: %@", urlString);
     NSURL *url = [NSURL URLWithString:urlString];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0f];
@@ -1027,7 +1029,7 @@ static KIODBStore *dbStore;
         KCLog(@"Not running query because it failed over %d times", self.maxQueryAttempts);
     } else {
         NSString *urlString = [NSString stringWithFormat:@"%@/%@/projects/%@/queries/%@",
-                               kKeenServerAddress, kKeenApiVersion, self.projectID, keenQuery.queryType];
+                               [self serverAddress], kKeenApiVersion, self.projectID, keenQuery.queryType];
         KCLog(@"Sending request to: %@", urlString);
         NSURL *url = [NSURL URLWithString:urlString];
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0f];
@@ -1045,7 +1047,7 @@ static KIODBStore *dbStore;
 
 - (void)runMultiAnalysisWithQueries:(NSArray *)keenQueries completionHandler:(void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler {
     NSString *urlString = [NSString stringWithFormat:@"%@/%@/projects/%@/queries/%@",
-                           kKeenServerAddress, kKeenApiVersion, self.projectID, @"multi_analysis"];
+                           [self serverAddress], kKeenApiVersion, self.projectID, @"multi_analysis"];
     KCLog(@"Sending request to: %@", urlString);
     
     NSDictionary *multiAnalysisDictionary = [self prepareQueriesDictionaryForMultiAnalysis:keenQueries];
@@ -1190,6 +1192,19 @@ static KIODBStore *dbStore;
         return 2;
     }
     return kKeenNumberEventsToForget;
+}
+
+
+# pragma mark - Server address
+
++ (void)setCustomServerAddress:(NSString *)aNewServerAddress
+{
+    customServerAddress = aNewServerAddress;
+}
+
+- (NSString *)serverAddress
+{
+    return customServerAddress ?: kKeenServerAddress;
 }
 
 @end
