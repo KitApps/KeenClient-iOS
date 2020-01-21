@@ -193,7 +193,7 @@ static NSString *customServerAddress = nil;
     }
 
     [KeenClient disableLogging];
-    [KeenClient enableGeoLocation];
+    [KeenClient disableGeoLocation];
 }
 
 + (void)disableLogging {
