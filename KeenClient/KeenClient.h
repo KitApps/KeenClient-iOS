@@ -127,6 +127,9 @@ typedef NSDictionary* (^KeenGlobalPropertiesBlock)(NSString *eventCollection);
  */
 + (KeenClient *)sharedClientWithProjectID:(NSString *)projectID andWriteKey:(NSString *)writeKey andReadKey:(NSString *)readKey;
 
+/// The same as (KeenClient *)sharedClientWithProjectID:(NSString *)projectID andWriteKey:(NSString *)writeKey andReadKey:(NSString *)readKey, but with writeKey == nil and readKey == nil
++ (KeenClient *)sharedClientWithProjectID:(NSString *)projectID;
+
 /**
  Call this to retrieve the managed instance of KeenClient.
  

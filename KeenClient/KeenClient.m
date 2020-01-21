@@ -308,6 +308,10 @@ static NSString *customServerAddress = nil;
 
 # pragma mark - Get a shared client
 
++ (KeenClient *)sharedClientWithProjectID:(NSString *)projectID {
+    [KeenClient sharedClientWithProjectID:projectID andWriteKey:nil andReadKey:nil];
+}
+
 + (KeenClient *)sharedClientWithProjectID:(NSString *)projectID andWriteKey:(NSString *)writeKey andReadKey:(NSString *)readKey {
     if (!sharedClient) {
         sharedClient = [[KeenClient alloc] init];
@@ -482,10 +486,11 @@ static NSString *customServerAddress = nil;
 }
 
 - (BOOL)addEvent:(NSDictionary *)event withKeenProperties:(KeenProperties *)keenProperties toEventCollection:(NSString *)eventCollection error:(NSError **) anError {
-    // make sure the write key has been set - can't do anything without that
-    if (![KeenClient validateKey:self.writeKey]) {
-        [NSException raise:@"KeenNoWriteKeyProvided" format:@"You tried to add an event without setting a write key, please set one!"];
-    }
+    // turn off exception, because there is no validation on BE now and we need to avoid crash
+    // will be added later on BE
+//    if (![KeenClient validateKey:self.writeKey]) {
+//        [NSException raise:@"KeenNoWriteKeyProvided" format:@"You tried to add an event without setting a write key, please set one!"];
+//    }
 
     // don't do anything if the event itself or the event collection name are invalid somehow.
     if (![self validateEventCollection:eventCollection error:anError]) {
