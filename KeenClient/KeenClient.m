@@ -361,38 +361,7 @@ static NSString *customServerAddress = nil;
     // only do this if geo is enabled
     if (geoLocationEnabled == YES) {
         KCLog(@"Geo Location is enabled.");
-        // set up the location manager
-        if (self.locationManager == nil) {
-            if ([CLLocationManager locationServicesEnabled]) {
-                self.locationManager = [[CLLocationManager alloc] init];
-                self.locationManager.delegate = self;
-            }
-        }
-        
-        // check for iOS 8 and provide appropriate authorization for location services
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-        if(self.locationManager != nil) {
-            if([self.locationManager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-                // allow explicit control over the type of authorization
-                if(authorizedGeoLocationAlways) {
-                    [self.locationManager requestAlwaysAuthorization];
-                }
-                else if(authorizedGeoLocationWhenInUse) {
-                    [self.locationManager requestWhenInUseAuthorization];
-                }
-                else if(!authorizedGeoLocationAlways && !authorizedGeoLocationWhenInUse) {
-                    // default to when in use because it is the least invasive authorization
-                    [self.locationManager requestWhenInUseAuthorization];
-                }
-            }
-        }
-#endif
-        
-        // if, at this point, the location manager is ready to go, we can start location services
-        if (self.locationManager) {
-            [self.locationManager startUpdatingLocation];
-            KCLog(@"Started location manager.");
-        }
+        // Do nothing, because it's not used
     } else {
         KCLog(@"Geo Location is disabled.");
     }
