@@ -242,30 +242,6 @@
     XCTAssertEqualObjects(originalDate, deserializedDate, @"If a timestamp is specified it should be used.");
 }
 
-- (void)testEventWithLocation {
-    KeenClient *client = [KeenClient sharedClientWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
-    KeenClient *clientI = [[KeenClient alloc] initWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
-
-    KeenProperties *keenProperties = [[KeenProperties alloc] init];
-    CLLocation *location = [[CLLocation alloc] initWithLatitude:37.73 longitude:-122.47];
-    keenProperties.location = location;
-    [client addEvent:@{@"a": @"b"} withKeenProperties:keenProperties toEventCollection:@"foo" error:nil];
-    [clientI addEvent:@{@"a": @"b"} withKeenProperties:keenProperties toEventCollection:@"foo" error:nil];
-
-    NSDictionary *eventsForCollection = [[[KeenClient getDBStore] getEventsWithMaxAttempts:3 andProjectID:client.projectID] objectForKey:@"foo"];
-    // Grab the first event we get back
-    NSData *eventData = [eventsForCollection objectForKey:[[eventsForCollection allKeys] objectAtIndex:0]];
-    NSError *error = nil;
-    NSDictionary *deserializedDict = [NSJSONSerialization JSONObjectWithData:eventData
-                                                                     options:0
-                                                                       error:&error];
-
-    NSDictionary *deserializedLocation = deserializedDict[@"keen"][@"location"];
-    NSArray *deserializedCoords = deserializedLocation[@"coordinates"];
-    XCTAssertEqualObjects(@-122.47, deserializedCoords[0], @"Longitude was incorrect.");
-    XCTAssertEqualObjects(@37.73, deserializedCoords[1], @"Latitude was incorrect.");
-}
-
 - (void)testEventWithDictionary {
     KeenClient *client = [KeenClient sharedClientWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
     KeenClient *clientI = [[KeenClient alloc] initWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
@@ -286,55 +262,6 @@
     XCTAssertEqualObjects(@"val1", deserializedDict[@"test_str_array"][0], @"array was incorrect");
     XCTAssertEqualObjects(@"val2", deserializedDict[@"test_str_array"][1], @"array was incorrect");
     XCTAssertEqualObjects(@"val3", deserializedDict[@"test_str_array"][2], @"array was incorrect");
-}
-
-- (void)testGeoLocation {
-    // set up a client with a location
-    KeenClient *client = [KeenClient sharedClientWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
-    KeenClient *clientI = [[KeenClient alloc] initWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
-    
-    CLLocation *location = [[CLLocation alloc] initWithLatitude:37.73 longitude:-122.47];
-    client.currentLocation = location;
-    // add an event
-    [client addEvent:@{@"a": @"b"} toEventCollection:@"foo" error:nil];
-    [clientI addEvent:@{@"a": @"b"} toEventCollection:@"foo" error:nil];
-    // now get the stored event
-    NSDictionary *eventsForCollection = [[[KeenClient getDBStore] getEventsWithMaxAttempts:3 andProjectID:client.projectID] objectForKey:@"foo"];
-    // Grab the first event we get back
-    NSData *eventData = [eventsForCollection objectForKey:[[eventsForCollection allKeys] objectAtIndex:0]];
-    NSError *error = nil;
-    NSDictionary *deserializedDict = [NSJSONSerialization JSONObjectWithData:eventData
-                                                                     options:0
-                                                                       error:&error];
-
-    NSDictionary *deserializedLocation = deserializedDict[@"keen"][@"location"];
-    NSArray *deserializedCoords = deserializedLocation[@"coordinates"];
-    XCTAssertEqualObjects(@-122.47, deserializedCoords[0], @"Longitude was incorrect.");
-    XCTAssertEqualObjects(@37.73, deserializedCoords[1], @"Latitude was incorrect.");
-}
-
-- (void)testGeoLocationDisabled {
-    // now try the same thing but disable geo location
-    KeenClient *client = [KeenClient sharedClientWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
-    KeenClient *clientI = [[KeenClient alloc] initWithProjectID:@"id" andWriteKey:@"wk" andReadKey:@"rk"];
-    
-    [KeenClient disableGeoLocation];
-    // add an event
-    [client addEvent:@{@"a": @"b"} toEventCollection:@"bar" error:nil];
-    [clientI addEvent:@{@"a": @"b"} toEventCollection:@"bar" error:nil];
-    // now get the stored event
-
-    // Grab the first event we get back
-    NSDictionary *eventsForCollection = [[[KeenClient getDBStore] getEventsWithMaxAttempts:3 andProjectID:client.projectID] objectForKey:@"bar"];
-    // Grab the first event we get back
-    NSData *eventData = [eventsForCollection objectForKey:[[eventsForCollection allKeys] objectAtIndex:0]];
-    NSError *error = nil;
-    NSDictionary *deserializedDict = [NSJSONSerialization JSONObjectWithData:eventData
-                                                                     options:0
-                                                                       error:&error];
-
-    NSDictionary *deserializedLocation = deserializedDict[@"keen"][@"location"];
-    XCTAssertNil(deserializedLocation, @"No location should have been saved.");
 }
 
 - (void)testEventWithNonDictionaryKeen {

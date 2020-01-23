@@ -12,13 +12,9 @@
 #import "KIOReachability.h"
 #import "HTTPCodes.h"
 #import "KIOQuery.h"
-#import <CoreLocation/CoreLocation.h>
 
 
 static KeenClient *sharedClient;
-static BOOL authorizedGeoLocationAlways = NO;
-static BOOL authorizedGeoLocationWhenInUse = NO;
-static BOOL geoLocationEnabled = NO;
 static BOOL loggingEnabled = NO;
 static KIODBStore *dbStore;
 
@@ -34,9 +30,6 @@ static NSString *customServerAddress = nil;
 
 // The Read Key for this particular client.
 @property (nonatomic, strong) NSString *readKey;
-
-// NSLocationManager
-@property (nonatomic, strong) CLLocationManager *locationManager;
 
 // How many times the previous timestamp has been used.
 @property (nonatomic) NSInteger numTimesTimestampUsed;
@@ -168,8 +161,6 @@ static NSString *customServerAddress = nil;
 @synthesize projectID=_projectID;
 @synthesize writeKey=_writeKey;
 @synthesize readKey=_readKey;
-@synthesize locationManager=_locationManager;
-@synthesize currentLocation=_currentLocation;
 @synthesize numTimesTimestampUsed=_numTimesTimestampUsed;
 @synthesize isRunningTests=_isRunningTests;
 @synthesize globalPropertiesDictionary=_globalPropertiesDictionary;
@@ -193,7 +184,6 @@ static NSString *customServerAddress = nil;
     }
 
     [KeenClient disableLogging];
-    [KeenClient disableGeoLocation];
 }
 
 + (void)disableLogging {
@@ -206,26 +196,6 @@ static NSString *customServerAddress = nil;
 
 + (BOOL)isLoggingEnabled {
     return loggingEnabled;
-}
-
-+ (void)authorizeGeoLocationAlways {
-    KCLog(@"Authorizing Geo Location Always");
-    authorizedGeoLocationAlways = YES;
-}
-
-+ (void)authorizeGeoLocationWhenInUse {
-    KCLog(@"Authorizing Geo Location When In Use");
-    authorizedGeoLocationWhenInUse = YES;
-}
-
-+ (void)enableGeoLocation {
-    KCLog(@"Enabling Geo Location");
-    geoLocationEnabled = YES;
-}
-
-+ (void)disableGeoLocation {
-    KCLog(@"Disabling Geo Location");
-    geoLocationEnabled = NO;
 }
 
 + (void)clearAllEvents {
@@ -247,9 +217,7 @@ static NSString *customServerAddress = nil;
     if ([KeenClient isLoggingEnabled]) {
         KCLog(@"KeenClient-iOS %@", kKeenSdkVersion);
     }
-    
-    [self refreshCurrentLocation];
-    
+
     self.uploadQueue = dispatch_queue_create("io.keen.uploader", DISPATCH_QUEUE_SERIAL);
 
     // use global concurrent dispatch queue to run queries in parallel
@@ -353,38 +321,6 @@ static NSString *customServerAddress = nil;
         return nil;
     }
     return sharedClient;
-}
-
-# pragma mark - Geo stuff
-
-- (void)refreshCurrentLocation {
-    // only do this if geo is enabled
-    if (geoLocationEnabled == YES) {
-        KCLog(@"Geo Location is enabled.");
-        // Do nothing, because it's not used
-    } else {
-        KCLog(@"Geo Location is disabled.");
-    }
-}
-
-// Delegate method from the CLLocationManagerDelegate protocol.
-- (void)locationManager:(CLLocationManager *)manager
-    didUpdateToLocation:(CLLocation *)newLocation
-           fromLocation:(CLLocation *)oldLocation {
-    // If it's a relatively recent event, turn off updates to save power
-    NSDate* eventDate = newLocation.timestamp;
-    NSTimeInterval howRecent = [eventDate timeIntervalSinceNow];
-    if ((int)fabs(howRecent) < 15.0) {
-        KCLog(@"latitude %+.6f, longitude %+.6f\n",
-              newLocation.coordinate.latitude,
-              newLocation.coordinate.longitude);
-        self.currentLocation = newLocation;
-        // got the location, now stop checking
-        [self.locationManager stopUpdatingLocation];
-        KCLog(@"Done finding location");
-    } else {
-        KCLog(@"Event wasn't recent enough: %+.2d", (int)fabs(howRecent));
-    }
 }
 
 # pragma mark - Add events
@@ -502,9 +438,6 @@ static NSString *customServerAddress = nil;
         KeenProperties *newProperties = [[KeenProperties alloc] init];
         keenProperties = newProperties;
     }
-    if (geoLocationEnabled && self.currentLocation != nil && keenProperties.location == nil) {
-        keenProperties.location = self.currentLocation;
-    }
     
     // this is the event we'll actually write
     NSMutableDictionary *eventToWrite = [NSMutableDictionary dictionaryWithDictionary:event];
@@ -586,15 +519,6 @@ static NSString *customServerAddress = nil;
         
         NSString *isoDate = [self convertDate:keenProperties.timestamp];
         NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithObject:isoDate forKey:@"timestamp"];
-        
-        CLLocation *location = keenProperties.location;
-        if (location != nil) {
-            NSNumber *longitude = [NSNumber numberWithDouble:location.coordinate.longitude];
-            NSNumber *latitude = [NSNumber numberWithDouble:location.coordinate.latitude];
-            NSArray *coordinatesArray = [NSArray arrayWithObjects:longitude, latitude, nil];
-            NSDictionary *coordinatesDict = [NSDictionary dictionaryWithObject:coordinatesArray forKey:@"coordinates"];
-            [dict setObject:coordinatesDict forKey:@"location"];
-        }
         
         return dict;
     } else {
@@ -1133,14 +1057,6 @@ static NSString *customServerAddress = nil;
     } else if ([value isKindOfClass:[KeenProperties class]]) {
         KeenProperties *keenProperties = (KeenProperties *)value;
         NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithObject:keenProperties.timestamp forKey:@"timestamp"];
-        CLLocation *location = keenProperties.location;
-        if (location != nil) {
-            NSNumber *longitude = [NSNumber numberWithDouble:location.coordinate.longitude];
-            NSNumber *latitude = [NSNumber numberWithDouble:location.coordinate.latitude];
-            NSArray *coordinatesArray = [NSArray arrayWithObjects:longitude, latitude, nil];
-            NSDictionary *coordinatesDict = [NSDictionary dictionaryWithObject:coordinatesArray forKey:@"coordinates"];
-            [dict setObject:coordinatesDict forKey:@"location"];
-        }
         return dict;
     }
     return NULL;

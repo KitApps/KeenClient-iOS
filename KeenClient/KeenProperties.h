@@ -7,11 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <CoreLocation/CoreLocation.h>
 
 /**
  This class is used to represent Keen-specific properties that can be included on each event.
- Today this includes timestamp and location.
+ Today this includes timestamp.
  */
 @interface KeenProperties : NSObject
 
@@ -20,11 +19,5 @@
  but you can set it yourself if you'd like.
  */
 @property (nonatomic, strong) NSDate *timestamp;
-
-/**
- The location where a particular event occured. The Keen Client will automatically generate this for you,
- but you can set it yourself if you'd like.
- */
-@property (nonatomic, strong) CLLocation *location;
 
 @end

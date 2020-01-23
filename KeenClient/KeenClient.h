@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <CoreLocation/CoreLocation.h>
 #import "KIODBStore.h"
 #import "KIOQuery.h"
 #import "KeenProperties.h"
@@ -28,7 +27,7 @@ typedef NSDictionary* (^KeenGlobalPropertiesBlock)(NSString *eventCollection);
     [[KeenClient sharedClient] addEvent:myEvent toEventCollection:@"purchases"];
     [[KeenClient sharedClient] uploadWithFinishedBlock:nil];
  */
-@interface KeenClient : NSObject <CLLocationManagerDelegate>
+@interface KeenClient : NSObject
 
 /**
  This Objective-C property represents the Keen Global Properties dictionary for this instance of the
@@ -92,13 +91,6 @@ typedef NSDictionary* (^KeenGlobalPropertiesBlock)(NSString *eventCollection);
 @property (nonatomic, copy) KeenGlobalPropertiesBlock globalPropertiesBlock;
 
 /**
- A property that holds the current location of the device. You can either call
- [KeenClient refreshCurrentLocation] to pull location from the device or you can set this property with
- your own value.
- */
-@property (nonatomic, strong) CLLocation *currentLocation;
-
-/**
  The maximum number of times to try POSTing an event before purging it from the DB.
  */
 @property int maxEventUploadAttempts;
@@ -138,37 +130,6 @@ typedef NSDictionary* (^KeenGlobalPropertiesBlock)(NSString *eventCollection);
  @return A managed instance of KeenClient, or nil if you haven't called [KeenClient sharedClientWithProjectID:andWriteKey:andReadKey:].
  */
 + (KeenClient *)sharedClient;
-
-/**
- Call this to authorize geo location always (iOS 8 and above). You must also add NSLocationAlwaysUsageDescription string to Info.plist to
- authorize geo location always (foreground and background), call this BEFORE doing anything else with KeenClient.
- 
- */
-+ (void)authorizeGeoLocationAlways;
-
-/**
- Call this to authorize geo location when in use (iOS 8 and above). You must also add NSLocationWhenInUsageDescription string to Info.plist to
- authorize geo location when in use (foreground), call this BEFORE doing anything else with KeenClient.
- 
- When In Use is AUTHORIZED by default.
- */
-+ (void)authorizeGeoLocationWhenInUse;
-
-/**
- Call this to disable geo location. If you don't want to pop up a message to users asking them to approve geo location
- services, call this BEFORE doing anything else with KeenClient.
- 
- Geo location is ENABLED by default.
- */
-+ (void)disableGeoLocation;
-
-/**
- Call this to enable geo location. You'll probably only have to call this if for some reason you've explicitly
- disabled geo location.
- 
- Geo location is ENABLED by default.
- */
-+ (void)enableGeoLocation;
 
 /**
  Call this to disable debug logging. It's disabled by default.
@@ -276,12 +237,6 @@ typedef NSDictionary* (^KeenGlobalPropertiesBlock)(NSString *eventCollection);
  The block is also called when no upload was necessary because no events were captured.
  */
 - (void)uploadWithFinishedBlock:(void (^)())block;
-
-/**
- Refresh the current geo location. The Keen Client only gets geo at the beginning of each session (i.e. when the client is created).
- If you want to update geo to the current location, call this method.
- */
-- (void)refreshCurrentLocation;
 
 /**
  Returns the Keen SDK Version.
